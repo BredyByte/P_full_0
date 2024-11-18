@@ -103,19 +103,11 @@ function setupEventListeners(gameState) {
         }
 
 		if (moved) {
-			performGameUpdate(gameState)
-				.then(() => checkGameOver(gameState))
-				.catch((error) => {
-					console.error("Ошибка при обновлении игры:", error);
-				});
-		}
-
-		function performGameUpdate(gameState) {
-			return new Promise((resolve) => {
-				spawnRandomTile(gameState.board);
-				renderBoard(gameState);
-				requestAnimationFrame(() => resolve());
-			});
+			spawnRandomTile(board);
+			renderBoard(gameState);
+			setTimeout(() => {
+				checkGameOver(gameState);
+			}, 100);
 		}
     });
 
@@ -131,7 +123,20 @@ function setupEventListeners(gameState) {
 }
 
 function checkGameOver(gameState) {
-    const { board } = gameState;
+    const { board, score } = gameState;
+
+	// Checking for token with value 2048
+	for (let i = 0; i < board.length; i++) {
+		for (let j = 0; j < board[i].length; j++) {
+			if (board[i][j].val === 2048) {
+				alert(`Congratulations! You reached 2048! with score ${score}`);
+				const newGameState = initializeGame();
+				Object.assign(gameState, newGameState);
+				renderBoard(gameState);
+				return true;
+			}
+		}
+	}
 
     // Checking for free cells
     for (let i = 0; i < board.length; i++) {
