@@ -96,7 +96,9 @@ function setupEventListeners(gameState) {
         if (moved) {
             spawnRandomTile(board);
             renderBoard(gameState);
-            checkGameOver(gameState);
+			setTimeout(() => {
+				checkGameOver(gameState);
+			}, 100);
         }
     });
 
@@ -112,19 +114,32 @@ function setupEventListeners(gameState) {
 }
 
 function checkGameOver(gameState) {
-    const { board } = gameState;
+    const { board, score } = gameState;
 
     for (let i = 0; i < board.length; i++) {
         for (let j = 0; j < board[i].length; j++) {
-            if (board[i][j] === 0) return;
+            if (board[i][j] === 2048) {
+                gameState.isGameOver = true;
+
+				if (window.confirm(`You Win! Your score is ${score}`)) {
+					const newGameState = initializeGame();
+					Object.assign(gameState, newGameState);
+					renderBoard(gameState);
+					return;
+				}
+            }
         }
     }
-
 
     const hasMoves = canMove(board);
     if (!hasMoves) {
         gameState.isGameOver = true;
-        alert("Game Over!");
+
+		if (window.confirm("Game Over! Do you want to restart the game?")) {
+			const newGameState = initializeGame();
+			Object.assign(gameState, newGameState);
+			renderBoard(gameState);
+		}
     }
 }
 
@@ -144,7 +159,7 @@ function canMove(board) {
 function moveLeft(board, gameState) {
     let moved = false;
     for (let i = 0; i < board.length; i++) {
-        let newRow = board[i].filter(val => val !== 0); 
+        let newRow = board[i].filter(val => val !== 0);
         for (let j = 0; j < newRow.length - 1; j++) {
             if (newRow[j] === newRow[j + 1]) {
                 newRow[j] *= 2;
