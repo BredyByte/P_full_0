@@ -80,16 +80,16 @@ function setupEventListeners(gameState) {
 
         switch (event.key) {
             case "ArrowUp":
-                moved = moveUp(board);
+                moved = moveUp(board, gameState);
                 break;
             case "ArrowDown":
-                moved = moveDown(board);
+                moved = moveDown(board, gameState);
                 break;
             case "ArrowLeft":
-                moved = moveLeft(board);
+                moved = moveLeft(board, gameState);
                 break;
             case "ArrowRight":
-                moved = moveRight(board);
+                moved = moveRight(board, gameState);
                 break;
         }
 
@@ -141,22 +141,117 @@ function canMove(board) {
     return false;
 }
 
-function moveLeft(board) {
-	console.log('Moved Left!!');
-    return false;
+function moveLeft(board, gameState) {
+    let moved = false;
+    for (let i = 0; i < board.length; i++) {
+        let newRow = board[i].filter(val => val !== 0); 
+        for (let j = 0; j < newRow.length - 1; j++) {
+            if (newRow[j] === newRow[j + 1]) {
+                newRow[j] *= 2;
+                newRow[j + 1] = 0;
+                gameState.score += newRow[j];
+            }
+        }
+        newRow = newRow.filter(val => val !== 0);
+        while (newRow.length < 4) {
+            newRow.push(0);
+        }
+        if (!arraysEqual(board[i], newRow)) {
+            moved = true;
+        }
+        board[i] = newRow;
+    }
+    return moved;
 }
 
-function moveRight(board) {
-	console.log('Moved Down!!');
-    return false;
+function moveRight(board, gameState) {
+    let moved = false;
+    for (let i = 0; i < board.length; i++) {
+        let newRow = board[i].filter(val => val !== 0);
+        for (let j = newRow.length - 1; j > 0; j--) {
+            if (newRow[j] === newRow[j - 1]) {
+                newRow[j] *= 2;
+                newRow[j - 1] = 0;
+                gameState.score += newRow[j];
+            }
+        }
+        newRow = newRow.filter(val => val !== 0);
+        while (newRow.length < 4) {
+            newRow.unshift(0);
+        }
+        if (!arraysEqual(board[i], newRow)) {
+            moved = true;
+        }
+        board[i] = newRow;
+    }
+    return moved;
 }
 
-function moveUp(board) {
-	console.log('Moved Up!!');
-    return false;
+function moveUp(board, gameState) {
+    let moved = false;
+    for (let col = 0; col < 4; col++) {
+        let newCol = [];
+        for (let row = 0; row < 4; row++) {
+            if (board[row][col] !== 0) {
+                newCol.push(board[row][col]);
+            }
+        }
+        for (let i = 0; i < newCol.length - 1; i++) {
+            if (newCol[i] === newCol[i + 1]) {
+                newCol[i] *= 2;
+                newCol[i + 1] = 0;
+                gameState.score += newCol[i];
+            }
+        }
+        newCol = newCol.filter(val => val !== 0);
+        while (newCol.length < 4) {
+            newCol.push(0);
+        }
+        for (let row = 0; row < 4; row++) {
+            if (board[row][col] !== newCol[row]) {
+                moved = true;
+            }
+            board[row][col] = newCol[row];
+        }
+    }
+    return moved;
 }
 
-function moveDown(board) {
-	console.log('Moved Down!!');
-    return false;
+function moveDown(board, gameState) {
+    let moved = false;
+    for (let col = 0; col < 4; col++) {
+        let newCol = [];
+        for (let row = 0; row < 4; row++) {
+            if (board[row][col] !== 0) {
+                newCol.push(board[row][col]);
+            }
+        }
+        for (let i = newCol.length - 1; i > 0; i--) {
+            if (newCol[i] === newCol[i - 1]) {
+                newCol[i] *= 2;
+                newCol[i - 1] = 0;
+                gameState.score += newCol[i];
+            }
+        }
+        newCol = newCol.filter(val => val !== 0);
+        while (newCol.length < 4) {
+            newCol.unshift(0);
+        }
+        for (let row = 0; row < 4; row++) {
+            if (board[row][col] !== newCol[row]) {
+                moved = true;
+            }
+            board[row][col] = newCol[row];
+        }
+    }
+    return moved;
 }
+
+function arraysEqual(arr1, arr2) {
+    if (arr1.length !== arr2.length) return false;
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i]) return false;
+    }
+    return true;
+}
+
