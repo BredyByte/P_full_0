@@ -102,13 +102,21 @@ function setupEventListeners(gameState) {
                 break;
         }
 
-        if (moved) {
-            spawnRandomTile(board);
-            renderBoard(gameState);
-			// setTimeout(() => {
-			// 	checkGameOver(gameState);
-			// }, 100);
-        }
+		if (moved) {
+			performGameUpdate(gameState)
+				.then(() => checkGameOver(gameState))
+				.catch((error) => {
+					console.error("Ошибка при обновлении игры:", error);
+				});
+		}
+
+		function performGameUpdate(gameState) {
+			return new Promise((resolve) => {
+				spawnRandomTile(gameState.board);
+				renderBoard(gameState);
+				requestAnimationFrame(() => resolve());
+			});
+		}
     });
 
 	const restartBtn = document.getElementById("restart-btn");
@@ -122,48 +130,48 @@ function setupEventListeners(gameState) {
 	}
 }
 
-// function checkGameOver(gameState) {
-//     const { board, score } = gameState;
+function checkGameOver(gameState) {
+    const { board } = gameState;
 
-//     for (let i = 0; i < board.length; i++) {
-//         for (let j = 0; j < board[i].length; j++) {
-//             if (board[i][j] === 2048) {
-//                 gameState.isGameOver = true;
+    // Checking for free cells
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[i].length; j++) {
+            if (board[i][j].val === 0) {
+                return false;
+            }
+        }
+    }
 
-// 				if (window.confirm(`You Win! Your score is ${score}`)) {
-// 					const newGameState = initializeGame();
-// 					Object.assign(gameState, newGameState);
-// 					renderBoard(gameState);
-// 					return;
-// 				}
-//             }
-//         }
-//     }
+    // Checking the possibility of merging horizontally
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[i].length - 1; j++) {
+            if (board[i][j].val === board[i][j + 1].val) {
+                return false;
+            }
+        }
+    }
 
-//     const hasMoves = canMove(board);
-//     if (!hasMoves) {
-//         gameState.isGameOver = true;
+    // We are checking the possibility of merging vertically
+    for (let i = 0; i < board.length - 1; i++) {
+        for (let j = 0; j < board[i].length; j++) {
+            if (board[i][j].val === board[i + 1][j].val) {
+                return false;
+            }
+        }
+    }
 
-// 		if (window.confirm("Game Over! Do you want to restart the game?")) {
-// 			const newGameState = initializeGame();
-// 			Object.assign(gameState, newGameState);
-// 			renderBoard(gameState);
-// 		}
-//     }
-// }
+    gameState.isGameOver = true;
 
-// function canMove(board) {
-//     for (let i = 0; i < board.length; i++) {
-//         for (let j = 0; j < board[i].length; j++) {
-//             const value = board[i][j];
-//             if (i > 0 && board[i - 1][j] === value) return true;
-//             if (i < 3 && board[i + 1][j] === value) return true;
-//             if (j > 0 && board[i][j - 1] === value) return true;
-//             if (j < 3 && board[i][j + 1] === value) return true;
-//         }
-//     }
-//     return false;
-// }
+    const wantsNewGame = confirm("Game over! Do you want to start a new game?");
+    if (wantsNewGame) {
+        const newGameState = initializeGame();
+        Object.assign(gameState, newGameState);
+        renderBoard(gameState);
+    }
+
+    return true;
+}
+
 
 function moveLeft(board, gameState) {
     let moved = false;
